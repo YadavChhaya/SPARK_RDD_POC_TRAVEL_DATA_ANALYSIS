@@ -1,0 +1,169 @@
+Spark POC – Travel Data Analysis
+--------------------------------
+
+Travel Sector Dataset Description
+
+Index 0 : City pair (Combination of from and to): String
+
+Index 1: From location: String
+
+Index 2: To Location: String
+
+Index 3: Product type: Integer (1=Air, 2=Car, 3 =Air+Car, 4 =Hotel, 5=Air+Hotel, 6=Hotel +Car, 7 =Air+Hotel+Car)
+
+Index 4: Adults traveling: Integer
+
+Index 5: Seniors traveling: Integer
+
+Index 6: Children traveling: Integer
+
+Index 7: Youth traveling: Integer
+
+Index 8: Infant traveling: Integer
+
+Index 9: Date of travel: String
+
+Index 10: Time of travel: String
+
+Index 11: Date of Return: String
+
+Index 12: Time of Return: String
+
+Index 13: Price of booking: Float
+
+Index 14: Hotel name: String
+
+Dataset Download Link
+----------------------
+https://drive.google.com/open?id=0ByJLBTmJojjzZEg2bXpYa0dyd1k
+
+
+Problem Statement 1
+-------------------
+Top 20 destination people travel the most.
+
+
+Source Code:
+-------------
+
+hadoop fs -mkdir -p /user/hadoop/input/
+hadoop fs -put /home/cloudera/Downloads/TravelData.txt /user/hadoop/input/
+spark-shell
+val rdd1 = sc.textFile("hdfs://quickstart.cloudera:8020/user/hadoop/input/TravelData.txt")
+val rdd2 = rdd1.map( line => line.toString())
+val rdd3 = rdd2.map(_.split("\t"))
+val rdd4 = rdd3.map(x=> (x(2),1))
+val rdd5 = rdd4.reduceByKey(_ + _)
+val rdd6 = rdd5.map( key=> key.swap).sortByKey(false).top(20)
+rdd6.foreach(println)
+
+
+Output:
+--------
+(396,MIA)
+(290,SFO)
+(202,LAS)
+(162,LAX)
+(102,DFW)
+(64,DEN)
+(57,ORD)
+(54,PHL)
+(50,IAH)
+(45,JFK)
+(44,PHX)
+(40,FLL)
+(36,ATL)
+(31,MCO)
+(31,BOS)
+(27,SAN)
+(25,WAS)
+(24,CUN)
+(22,LON)
+(22,AUS)
+
+Problem Statement 2
+-------------------
+Top 20 locations from where people travel the most:
+
+
+Source Code:
+-------------
+val rdd1 = sc.textFile("hdfs://quickstart.cloudera:8020/user/hadoop/input/TravelData.txt")
+val rdd2 = rdd1.map( line => line.toString())
+val rdd3 = rdd2.map(_.split("\t"))
+val rdd4 = rdd3.map(x=> (x(1),1))
+val rdd5 = rdd4.reduceByKey(_ + _)
+val rdd6 = rdd5.map( key=> key.swap).sortByKey(false).top(20)
+rdd6.foreach(println)
+
+Output:
+
+(504,DFW)
+(293,MIA)
+(272,LAS)
+(167,BOM)
+(131,SFO)
+(101,ORD)
+(72,LAX)
+(55,DEN)
+(41,PHL)
+(37,IAH)
+(35,FLL)
+(33,PHX)
+(31,JFK)
+(24,WAS)
+(19,HOU)
+(19,ATL)
+(18,DXB)
+(17,SAN)
+(17,BOS)
+(17,BCN)
+
+Problem Statement 3:
+--------------------
+Top 20 cities that generate high airline revenues for travel, so that the site can concentrate on offering discount on booking, to those cities to attract more bookings.
+
+val rdd1 = sc.textFile("hdfs://quickstart.cloudera:8020/user/hadoop/input/TravelData.txt")
+val rdd2 = rdd1.map( line => line.toString())
+//SPITTING THE FIELDS WITH THE HELP OF TAB DELIMTER
+val rdd3 = rdd2.map(_.split("\t"))
+//FILTERING THE DATA FOR AIRLINE TRAVELS ONLY
+val rdd4 = rdd3.filter{ x => x(3).toInt == 1 }
+val rdd5 = rdd4.map(x=> (x(2),1))
+val rdd6 = rdd5.reduceByKey(_ + _)
+val rdd7 = rdd6.map( key=> key.swap).sortByKey(false).top(20).map( x => x.swap)
+rdd7.foreach(println)
+
+
+Output:
+-------
+
+(MIA,84)
+(SFO,68)
+(LAS,54)
+(LAX,42)
+(IAH,24)
+(DFW,23)
+(PHX,18)
+(BOS,17)
+(ORD,15)
+(NYC,13)
+(DCA,9)
+(WAS,8)
+(AUS,8)
+(MEM,7)
+(JFK,7)
+(DEN,7)
+(SYD,6)
+(PHL,6)
+(ATL,6)
+(SAN,5)
+
+
+
+
+
+
+
+
+
